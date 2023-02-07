@@ -9,7 +9,7 @@ spec:
   ports:
   - port: 80  # 服务对外端口
     protocol: TCP
-    targetPort: 8080 # 对应容器的端口
+    targetPort: 80 # 对应容器的端口
   selector:
     app: java-demo # 需要与Deployment YAML文件中的matchLabels的值一致。
   type: ClusterIP

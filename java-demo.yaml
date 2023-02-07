@@ -35,7 +35,7 @@ spec:
           imagePullPolicy: IfNotPresent
           name: java-demo # 容器名称
           ports:
-            - containerPort: 8080 # 当前容器暴露的端口
+            - containerPort: 80 # 当前容器暴露的端口
               name: java-demo    #  ports资源对象 名称
               protocol: TCP    # 端口协议ss
           resources:
