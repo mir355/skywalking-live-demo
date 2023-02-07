@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service # 资源对象 Service
+metadata:
+  labels:
+    app: java-demo
+  name: java-demo-svc # 服务名称
+  namespace: default
+spec:
+  ports:
+  - port: 80  # 服务对外端口
+    protocol: TCP
+    targetPort: 8080 # 对应容器的端口
+  selector:
+    app: java-demo # 需要与Deployment YAML文件中的matchLabels的值一致。
+  type: ClusterIP

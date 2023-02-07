@@ -64,7 +64,7 @@ jobs:
 
       - name: Build Docker Images
         run: |
-          image=registry.cn-hangzhou.aliyuncs.com/mir355/java-demo:${{ github.run_id }}
+          image=registry.cn-hangzhou.aliyuncs.com/mir355/java-demo:${{ matrix.project }}.${{ github.run_id }}
           docker build --build-arg TARGET_JAR=${{ matrix.project }}/target/${{ matrix.project }}.jar . -t $image
           docker push $image
           cat Dockerfile
@@ -78,12 +78,14 @@ jobs:
           kubectl config use-context tf-system
       #     # bash bin/build ${{ secrets.acr_token }} ${{ github.run_id }}
 
-      # - name: Kube Deployment Update Image #通知k8s 更新镜像版本并产生一个记录
-      #   run: |
-      #     sed -i "s#mir355/java-demo.*#mir355/java-demo:${{ github.run_id }}'#" java-demo.yaml
-      #     cat java-demo.yaml
-      #     kubectl apply -f java-demo-svc.yaml
-      #     # 镜像地址与之前相同，需要触发重新部署
-      #     kubectl apply -f java-demo.yaml
+      - name: Kube Deployment Update Image #通知k8s 更新镜像版本并产生一个记录
+        run: |
+          sed -i "s#java-demo#${{ matrix.project }}#" java-demo.yaml
+          sed -i "s#mir355/${{ matrix.project }}.*#mir355/java-demo:${{ matrix.project }}.${{ github.run_id }}'#" java-demo.yaml
+          cat java-demo.yaml
+          sed -i "s#java-demo#${{ matrix.project }}#" java-demo-svc.yaml
+          kubectl apply -f java-demo-svc.yaml
+          # 镜像地址与之前相同，需要触发重新部署
+          kubectl apply -f java-demo.yaml
 
 

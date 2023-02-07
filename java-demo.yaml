@@ -1,0 +1,67 @@
+apiVersion: apps/v1 # api server 版本
+kind: Deployment  # 资源对象类型
+metadata:
+  labels: # 资源对象标签
+    app: java-demo  
+  name: java-demo # 应用名称
+  namespace: default # 所属命名空间
+spec:
+  replicas: 2  # pod数量
+  selector: 
+    matchLabels:
+      app: java-demo  #对应服务中Selector的值需要与其一致，才可以通过服务公开此应用。
+  strategy: # 部署更新策略
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template: # pod 模板
+    metadata:
+      labels:
+        app: java-demo
+    spec:
+      initContainers:
+      # skywalking镜像
+      - image: apache/skywalking-java-agent:8.7.0-alpine
+        name: agent-container
+        command: [ "/bin/sh" ]
+        args: [ "-c","cp /skywalking/agent/optional-plugins/apm-trace-ignore-plugin-8.7.0.jar /skywalking/agent/activations/ && cp -R /skywalking/agent /agent/"]
+        volumeMounts:
+        - name: skywalking-agent
+          mountPath: /agent    
+      containers:        
+        # 容器镜像
+        - image: 'registry.cn-hangzhou.aliyuncs.com/mir355/java-demo:1.0'
+          imagePullPolicy: IfNotPresent
+          name: java-demo # 容器名称
+          ports:
+            - containerPort: 8080 # 当前容器暴露的端口
+              name: java-demo    #  ports资源对象 名称
+              protocol: TCP    # 端口协议ss
+          resources:
+            limits:   # 容器最大资源限制
+              cpu: '1'
+              memory: 1Gi
+            requests: # 容器初始资源需求
+              cpu: 250m
+              memory: 512Mi
+          volumeMounts:
+            # 挂在skywalking-agent
+            - name: skywalking-agent
+              mountPath: /skywalking
+          env:
+            # skywalking 环境变量
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/skywalking/agent/skywalking-agent.jar -Dskywalking.trace.ignore_path=/eureka/**,SpringScheduled/**,GuavsaCache/**,Jedis/**,PostgreSQL/**"
+            # - name: SW_AGENT_SAMPLE
+            #   value: -1
+            - name: SW_AGENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            # oap服务地址
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "172.31.18.242:11800"
+      volumes: 
+      - name: skywalking-agent
+        emptyDir: {}
