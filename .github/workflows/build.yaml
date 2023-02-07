@@ -81,8 +81,8 @@ jobs:
       - name: Kube Deployment Update Image #通知k8s 更新镜像版本并产生一个记录
         run: |
           appname=`echo ${{ matrix.project }}|tr 'A-Z' 'a-z'`
-          sed -i "s#mir355/java-demo.*#mir355/java-demo:${{ matrix.project }}.${{ github.run_id }}'#" java-demo.yaml
           sed -i "s#java-demo#$appname#" java-demo.yaml
+          sed -i "s#mir355/$appname.*#mir355/java-demo:${{ matrix.project }}.${{ github.run_id }}'#" java-demo.yaml
           cat java-demo.yaml
           sed -i "s#java-demo#$appname#" java-demo-svc.yaml
           cat java-demo-svc.yaml
